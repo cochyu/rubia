@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rubia</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Noto+Serif+SC:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080610;
+  --surface: #100e1a;
+  --surface2: #16131f;
+  --surface3: #1d1929;
+  --border: #221e30;
+  --border-light: #2e2840;
+  --purple: #9b72cf;
+  --purple-dim: #5a3d8a;
+  --purple-bright: #c9a8ff;
+  --purple-faint: rgba(155,114,207,0.08);
+  --silver: #cdc5dd;
+  --silver-dim: #7a7290;
+  --text: #e4ddf0;
+  --text-dim: #7a7290;
+  --text-faint: #4a4560;
+  --glow: rgba(155,114,207,0.2);
+  --glow-soft: rgba(155,114,207,0.06);
+  --red: #c07070;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Serif SC', serif;
+  font-weight: 300;
+  overflow: hidden;
+}
+
+/* 全局背景光晕 */
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background:
+    radial-gradient(ellipse 55% 40% at 20% 60%, rgba(70,35,110,0.1) 0%, transparent 70%),
+    radial-gradient(ellipse 35% 50% at 80% 20%, rgba(50,25,90,0.07) 0%, transparent 70%);
+  pointer-events:none; z-index:0;
+}
+
+/* ── 整体布局 ── */
+.app {
+  display: grid;
+  grid-template-columns: 300px 1fr 320px;
+  grid-template-rows: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── 左栏：社交名片 ── */
+.profile-col {
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.profile-card {
+  padding: 36px 24px 24px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* 名片顶部装饰线 */
+.profile-card::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, transparent, var(--purple-dim), var(--purple), var(--purple-dim), transparent);
+}
+
+.avatar-section {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.avatar-frame {
+  position: relative;
+  width: 72px; height: 72px;
+  flex-shrink: 0;
+}
+
+.avatar {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #1e1530 0%, #120e20 50%, #1a1035 100%);
+  border: 1px solid var(--purple-dim);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px; font-weight: 300;
+  color: var(--purple-bright);
+  position: relative; overflow: hidden;
+}
+
+.avatar::after {
+  content:'';
+  position:absolute; inset:0;
+  background: radial-gradient(circle at 35% 35%, rgba(196,158,255,0.15), transparent 60%);
+}
+
+.avatar-ring {
+  position:absolute; inset:-4px;
+  border-radius:50%;
+  border: 1px solid transparent;
+  background: linear-gradient(135deg, var(--purple-dim), transparent, var(--purple-dim)) border-box;
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: destination-out;
+  mask-composite: exclude;
+  animation: ring-spin 12s linear infinite;
+}
+@keyframes ring-spin { to { transform: rotate(360deg); } }
+
+.avatar-dot {
+  position:absolute; bottom:3px; right:3px;
+  width:10px; height:10px; border-radius:50%;
+  background: var(--purple);
+  border: 2px solid var(--bg);
+  box-shadow: 0 0 8px var(--purple);
+  animation: dot-pulse 2.5s ease-in-out infinite;
+}
+@keyframes dot-pulse {
+  0%,100% { box-shadow: 0 0 4px var(--purple); }
+  50% { box-shadow: 0 0 12px var(--purple-bright); }
+}
+
+.avatar-side { flex:1; }
+
+.profile-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px; font-weight: 400;
+  color: var(--purple-bright);
+  letter-spacing: 0.06em;
+  line-height: 1;
+  margin-bottom: 5px;
+}
+
+.profile-handle {
+  font-size: 11px;
+  color: var(--text-faint);
+  letter-spacing: 0.12em;
+}
+
+.profile-bio {
+  font-size: 12px;
+  color: var(--silver-dim);
+  line-height: 1.9;
+  margin-bottom: 18px;
+  font-style: italic;
+  letter-spacing: 0.03em;
+}
+
+.profile-tags {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-bottom: 20px;
+}
+
+.tag {
+  padding: 3px 10px;
+  border: 1px solid var(--border-light);
+  border-radius: 2px;
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+  background: var(--surface2);
+  transition: all 0.2s;
+}
+
+.tag:hover { border-color: var(--purple-dim); color: var(--purple); }
+
+.profile-stats {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.stat {
+  background: var(--surface);
+  padding: 10px 8px;
+  text-align: center;
+}
+
+.stat-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px; font-weight: 400;
+  color: var(--purple-bright);
+  display: block; line-height: 1;
+  margin-bottom: 3px;
+}
+
+.stat-label {
+  font-size: 9px;
+  color: var(--text-faint);
+  letter-spacing: 0.1em;
+}
+
+.chat-btn {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  border: 1px solid var(--purple-dim);
+  border-radius: 2px;
+  color: var(--purple);
+  font-family: 'Noto Serif SC', serif;
+  font-size: 12px; font-weight: 300;
+  cursor: pointer;
+  letter-spacing: 0.1em;
+  transition: all 0.25s;
+  position: relative; overflow: hidden;
+}
+
+.chat-btn::before {
+  content:'';
+  position:absolute; inset:0;
+  background: linear-gradient(90deg, transparent, var(--purple-faint), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.4s;
+}
+
+.chat-btn:hover::before { transform: translateX(100%); }
+.chat-btn:hover {
+  border-color: var(--purple);
+  box-shadow: 0 0 16px rgba(107,79,160,0.2);
+}
+
+/* 记忆面板 */
+.memory-section {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+}
+
+.memory-section::-webkit-scrollbar { width:3px; }
+.memory-section::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+.section-label {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-label::after {
+  content:''; flex:1; height:1px; background:var(--border);
+}
+
+.memory-item {
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  border-left: 2px solid var(--border-light);
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.6;
+  transition: border-color 0.2s;
+}
+.memory-item:hover { border-left-color: var(--purple-dim); }
+.memory-time { font-size:9px; color:var(--text-faint); margin-top:3px; }
+
+.add-memory {
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.mem-input {
+  width:100%; padding:7px 10px;
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:2px; color:var(--text);
+  font-family:'Noto Serif SC',serif; font-size:11px; font-weight:300;
+  resize:none; outline:none; transition:border-color 0.2s;
+  margin-bottom:6px;
+}
+.mem-input:focus { border-color:var(--purple-dim); }
+.mem-input::placeholder { color:var(--text-faint); }
+
+.mem-save-btn {
+  width:100%; padding:6px;
+  background:transparent; border:1px solid var(--border-light);
+  border-radius:2px; color:var(--text-dim);
+  font-family:'Noto Serif SC',serif; font-size:11px;
+  cursor:pointer; transition:all 0.2s;
+}
+.mem-save-btn:hover { border-color:var(--purple-dim); color:var(--purple); }
+
+/* ── 中栏：朋友圈 ── */
+.moments-col {
+  display: flex; flex-direction: column;
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.moments-header {
+  padding: 20px 28px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.moments-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 15px; font-weight: 400;
+  color: var(--silver);
+  letter-spacing: 0.08em;
+}
+
+.gen-btn {
+  padding: 5px 14px;
+  background: transparent;
+  border: 1px solid var(--border-light);
+  border-radius: 2px;
+  color: var(--text-dim);
+  font-family: 'Noto Serif SC', serif;
+  font-size: 10px;
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  transition: all 0.2s;
+}
+.gen-btn:hover { border-color:var(--purple-dim); color:var(--purple); }
+
+.moments-feed {
+  flex:1; overflow-y:auto;
+  padding: 24px 28px;
+}
+.moments-feed::-webkit-scrollbar { width:3px; }
+.moments-feed::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+/* 动态卡片 */
+.moment-card {
+  display: flex; gap: 14px;
+  margin-bottom: 28px;
+  animation: card-in 0.4s ease forwards;
+  opacity: 0; transform: translateY(10px);
+}
+@keyframes card-in { to { opacity:1; transform:translateY(0); } }
+
+.moment-avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: linear-gradient(145deg, #1e1530, #120e20);
+  border: 1px solid var(--border-light);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 16px; color: var(--purple);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.moment-body { flex:1; min-width:0; }
+
+.moment-meta {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 8px;
+}
+
+.moment-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 14px; color: var(--purple-bright);
+  letter-spacing: 0.04em;
+}
+
+.moment-mood {
+  font-size: 9px; padding: 2px 7px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: var(--text-faint);
+  letter-spacing: 0.06em;
+}
+
+.mood-忧郁 { border-color: #3a3060; color: #7a6aa0; }
+.mood-微妙 { border-color: #2a3040; color: #607080; }
+.mood-专注 { border-color: #302a20; color: #806050; }
+.mood-隐秘 { border-color: #302030; color: #705060; }
+
+.moment-content {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 2;
+  letter-spacing: 0.03em;
+  margin-bottom: 10px;
+}
+
+.moment-footer {
+  display: flex; align-items: center; gap: 14px;
+}
+
+.moment-time {
+  font-size: 10px;
+  color: var(--text-faint);
+  letter-spacing: 0.05em;
+}
+
+.moment-tag {
+  font-size: 10px; color: var(--text-faint);
+}
+
+.like-btn {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 5px;
+  background: none; border: none;
+  color: var(--text-faint); font-size: 11px;
+  cursor: pointer; padding: 3px 8px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  transition: all 0.2s;
+  font-family: 'Noto Serif SC', serif;
+}
+.like-btn:hover { border-color: var(--border); color: var(--red); }
+.like-btn.liked { color: var(--red); border-color: rgba(192,112,112,0.3); }
+
+.moment-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+  margin-bottom: 28px;
+  margin-top: -14px;
+}
+
+.empty-moments {
+  text-align: center;
+  padding: 60px 0;
+  color: var(--text-faint);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  line-height: 2.5;
+}
+
+/* ── 右栏：聊天 ── */
+.chat-col {
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+.chat-header {
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+  flex-shrink: 0;
+}
+
+.chat-header-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(145deg, #1e1530, #120e20);
+  border: 1px solid var(--border-light);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 14px; color: var(--purple);
+}
+
+.chat-header-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 15px; color: var(--silver);
+  letter-spacing: 0.05em;
+}
+
+.chat-status {
+  margin-left: auto;
+  font-size: 10px; color: var(--purple);
+  letter-spacing: 0.08em;
+  display: flex; align-items: center; gap: 5px;
+}
+
+.status-dot {
+  width:5px; height:5px; border-radius:50%;
+  background:var(--purple);
+  animation: dot-pulse 2s ease-in-out infinite;
+}
+
+.chat-messages {
+  flex:1; overflow-y:auto;
+  padding: 20px 18px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.chat-messages::-webkit-scrollbar { width:3px; }
+.chat-messages::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+.chat-welcome {
+  text-align: center; padding: 30px 20px;
+  color: var(--text-faint); font-size: 11px;
+  line-height: 2.2; letter-spacing: 0.05em;
+  font-style: italic;
+}
+
+.msg { display:flex; gap:8px; animation: card-in 0.3s ease forwards; opacity:0; }
+.msg.user { flex-direction:row-reverse; }
+
+.msg-av {
+  width:28px; height:28px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; flex-shrink:0; margin-top:2px;
+}
+.msg.assistant .msg-av {
+  background:linear-gradient(145deg,#1e1530,#120e20);
+  border:1px solid var(--border-light);
+  color:var(--purple);
+  font-family:'Cormorant Garamond',serif;
+}
+.msg.user .msg-av {
+  background:var(--surface2); border:1px solid var(--border);
+  color:var(--text-faint); font-size:13px;
+}
+
+.msg-bubble {
+  max-width:78%; padding:10px 13px;
+  font-size:13px; line-height:1.85; border-radius:2px;
+}
+.msg.assistant .msg-bubble {
+  background:var(--surface); border:1px solid var(--border);
+  border-left:2px solid var(--purple-dim);
+  color:var(--text); border-radius:0 3px 3px 0;
+}
+.msg.user .msg-bubble {
+  background:var(--surface2); border:1px solid var(--border);
+  color:var(--silver); border-radius:3px 0 0 3px; text-align:right;
+}
+
+.typing-bubble {
+  display:flex; align-items:center; gap:5px;
+  padding:12px 14px;
+}
+.typing-dot {
+  width:4px; height:4px; border-radius:50%;
+  background:var(--purple-dim);
+  animation:typing 1.2s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) { animation-delay:.2s; }
+.typing-dot:nth-child(3) { animation-delay:.4s; }
+@keyframes typing {
+  0%,60%,100% { transform:translateY(0); opacity:0.3; }
+  30% { transform:translateY(-4px); opacity:1; }
+}
+
+.chat-input-wrap {
+  padding: 12px 16px 14px;
+  border-top: 1px solid var(--border);
+  display: flex; gap: 8px; align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.chat-input {
+  flex:1; padding:9px 12px;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:2px; color:var(--text);
+  font-family:'Noto Serif SC',serif; font-size:13px; font-weight:300;
+  outline:none; resize:none; min-height:38px; max-height:100px;
+  line-height:1.6; transition:border-color 0.2s;
+}
+.chat-input:focus { border-color:var(--purple-dim); }
+.chat-input::placeholder { color:var(--text-faint); }
+
+.send-btn {
+  width:38px; height:38px;
+  background:transparent; border:1px solid var(--purple-dim);
+  border-radius:2px; color:var(--purple);
+  font-size:14px; cursor:pointer; transition:all 0.2s;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.send-btn:hover { background:rgba(107,79,160,0.12); border-color:var(--purple); }
+.send-btn:disabled { opacity:0.3; cursor:not-allowed; }
+
+.chat-hint {
+  font-size:9px; color:var(--text-faint);
+  text-align:right; padding:0 16px 6px;
+  letter-spacing:0.05em; flex-shrink:0;
+}
+
+/* Toast */
+.toast {
+  position:fixed; bottom:24px; left:50%;
+  transform:translateX(-50%) translateY(16px);
+  background:var(--surface2); border:1px solid var(--border);
+  color:var(--silver-dim); padding:7px 18px;
+  border-radius:2px; font-size:11px;
+  opacity:0; transition:all 0.3s; z-index:200;
+  pointer-events:none; letter-spacing:0.06em;
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ── 左栏：社交名片 ── -->
+  <aside class="profile-col">
+    <div class="profile-card">
+      <div class="avatar-section">
+        <div class="avatar-frame">
+          <div class="avatar"><img src="avatar.jpg" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>
+          <div class="avatar-ring"></div>
+          <div class="avatar-dot"></div>
+        </div>
+        <div class="avatar-side">
+          <div class="profile-name">Rubia</div>
+          <div class="profile-handle">@rubia · 作家</div>
+        </div>
+      </div>
+
+      <div class="profile-bio">
+        银发如霜，紫眸如渊。<br>
+        养花，写字，饲养奇美拉。<br>
+        指尖的光是秘密。
+      </div>
+
+      <div class="profile-tags">
+        <span class="tag">作家</span>
+        <span class="tag">蝴蝶</span>
+        <span class="tag">奇美拉</span>
+        <span class="tag">花草</span>
+        <span class="tag">手工</span>
+        <span class="tag">同人</span>
+      </div>
+
+      <div class="profile-stats">
+        <div class="stat">
+          <span class="stat-num" id="statDays">1</span>
+          <span class="stat-label">在一起</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num" id="statMoments">0</span>
+          <span class="stat-label">动态</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num" id="statChats">0</span>
+          <span class="stat-label">对话</span>
+        </div>
+      </div>
+
+      <button class="chat-btn" onclick="focusChat()">与 Rubia 对话</button>
+    </div>
+
+    <!-- 记忆区 -->
+    <div class="memory-section">
+      <div class="section-label">长期记忆</div>
+      <div id="memoryList">
+        <div style="font-size:11px;color:var(--text-faint);padding:4px 0;">暂无记忆</div>
+      </div>
+    </div>
+
+    <div class="add-memory">
+      <textarea class="mem-input" id="memInput" rows="2" placeholder="记录一条记忆..."></textarea>
+      <button class="mem-save-btn" onclick="saveMemory()">存入记忆</button>
+    </div>
+  </aside>
+
+  <!-- ── 中栏：朋友圈 ── -->
+  <section class="moments-col">
+    <div class="moments-header">
+      <div class="moments-title">朋友圈</div>
+      <button class="gen-btn" onclick="generateMoment()">催一催</button>
+    </div>
+    <div class="moments-feed" id="momentsFeed">
+      <div class="empty-moments">
+        不要着急哦<br>
+        我每天都会更新的
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 右栏：聊天 ── -->
+  <section class="chat-col">
+    <div class="chat-header">
+      <div class="chat-header-avatar"><img src="avatar.jpg" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>
+      <div class="chat-header-name">Rubia</div>
+      <div class="chat-status">
+        <div class="status-dot"></div>
+        在线
+      </div>
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-welcome">
+        窗外的风今天有些凉。<br>
+        想说什么，就说吧。
+      </div>
+    </div>
+
+    <div class="chat-hint">Enter 发送 · Shift+Enter 换行</div>
+    <div class="chat-input-wrap">
+      <textarea class="chat-input" id="chatInput" placeholder="说点什么..." rows="1"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">↑</button>
+    </div>
+  </section>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── 工具 ──────────────────────────────────────────────────────
+function toast(msg, ms=2000) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), ms);
+}
+
+function formatTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const now = new Date();
+  const diff = (now - d) / 1000;
+  if (diff < 60) return '刚刚';
+  if (diff < 3600) return Math.floor(diff/60) + ' 分钟前';
+  if (diff < 86400) return Math.floor(diff/3600) + ' 小时前';
+  if (diff < 86400*7) return Math.floor(diff/86400) + ' 天前';
+  return d.toLocaleDateString('zh-CN', {month:'numeric',day:'numeric'});
+}
+
+function scrollChat() {
+  const el = document.getElementById('chatMessages');
+  el.scrollTo({ top: el.scrollHeight, behavior:'smooth' });
+}
+
+function focusChat() {
+  document.getElementById('chatInput').focus();
+}
+
+// ── 统计数字 ──────────────────────────────────────────────────
+function updateStats(momentCount) {
+  // 在一起天数（从应用第一次运行算起，简化为固定起始）
+  const start = localStorage.getItem('rubia_start');
+  if (!start) localStorage.setItem('rubia_start', Date.now());
+  const days = Math.max(1, Math.floor((Date.now() - localStorage.getItem('rubia_start')) / 86400000));
+  document.getElementById('statDays').textContent = days;
+  document.getElementById('statMoments').textContent = momentCount || 0;
+}
+
+// ── 朋友圈 ────────────────────────────────────────────────────
+let likedSet = new Set(JSON.parse(localStorage.getItem('rubia_liked') || '[]'));
+
+function saveLiked() {
+  localStorage.setItem('rubia_liked', JSON.stringify([...likedSet]));
+}
+
+function renderMoments(moments) {
+  const feed = document.getElementById('momentsFeed');
+  if (!moments || moments.length === 0) {
+    feed.innerHTML = `<div class="empty-moments">不要着急哦<br>我每天都会更新的</div>`;
+    return;
+  }
+  feed.innerHTML = moments.map((m, i) => {
+    const moodClass = m.mood ? `mood-${m.mood}` : '';
+    const liked = likedSet.has(m.id);
+    return `
+      <div class="moment-card" style="animation-delay:${i*0.05}s">
+        <div class="moment-avatar"><img src="avatar.jpg" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>
+        <div class="moment-body">
+          <div class="moment-meta">
+            <span class="moment-name">Rubia</span>
+            ${m.mood ? `<span class="moment-mood ${moodClass}">${m.mood}</span>` : ''}
+          </div>
+          <div class="moment-content">${m.content.replace(/\n/g,'<br>')}</div>
+          <div class="moment-footer">
+            <span class="moment-time">${formatTime(m.timestamp)}</span>
+            ${m.tag ? `<span class="moment-tag"># ${m.tag}</span>` : ''}
+            <button class="like-btn ${liked?'liked':''}" onclick="likeMoment(${m.id}, this)">
+              ♡ <span class="like-count">${m.likes || 0}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      ${i < moments.length-1 ? '<div class="moment-divider"></div>' : ''}
+    `;
+  }).join('');
+}
+
+async function loadMoments() {
+  try {
+    const res = await fetch('/moments');
+    const data = await res.json();
+    renderMoments(data.moments);
+    updateStats(data.moments.length);
+  } catch(e) { console.error(e); }
+}
+
+async function likeMoment(id, btn) {
+  if (likedSet.has(id)) return;
+  likedSet.add(id); saveLiked();
+  btn.classList.add('liked');
+  try {
+    const res = await fetch(`/moments/like/${id}`, {method:'POST'});
+    const data = await res.json();
+    btn.querySelector('.like-count').textContent = data.likes;
+  } catch(e) {}
+}
+
+async function generateMoment() {
+  const btn = document.querySelector('.gen-btn');
+  btn.textContent = '生成中…'; btn.disabled = true;
+  try {
+    await fetch('/moments/generate', {method:'POST'});
+    await loadMoments();
+    toast('新动态已发布');
+  } catch(e) {
+    toast('生成失败，请检查后端');
+  } finally {
+    btn.textContent = '催一催'; btn.disabled = false;
+  }
+}
+
+// ── 记忆 ─────────────────────────────────────────────────────
+async function loadMemories() {
+  try {
+    const res = await fetch('/memory/list');
+    const data = await res.json();
+    const list = document.getElementById('memoryList');
+    if (!data.memories.length) {
+      list.innerHTML = '<div style="font-size:11px;color:var(--text-faint);padding:4px 0;">暂无记忆</div>';
+      return;
+    }
+    list.innerHTML = data.memories.map(m => `
+      <div class="memory-item">
+        ${m.summary}
+        <div class="memory-time">${m.timestamp.slice(0,16).replace('T',' ')}</div>
+      </div>
+    `).join('');
+  } catch(e) {}
+}
+
+async function saveMemory() {
+  const input = document.getElementById('memInput');
+  const text = input.value.trim();
+  if (!text) return;
+  try {
+    await fetch('/memory/save', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({summary: text})
+    });
+    input.value = '';
+    toast('记忆已存入');
+    loadMemories();
+  } catch(e) { toast('存入失败'); }
+}
+
+// ── 聊天 ─────────────────────────────────────────────────────
+let chatLoading = false;
+
+const chatInput = document.getElementById('chatInput');
+const sendBtn = document.getElementById('sendBtn');
+
+chatInput.addEventListener('input', () => {
+  chatInput.style.height = 'auto';
+  chatInput.style.height = Math.min(chatInput.scrollHeight, 100) + 'px';
+});
+
+chatInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+function removeWelcome() {
+  const w = document.querySelector('.chat-welcome');
+  if (w) w.remove();
+}
+
+function appendMsg(role, content) {
+  removeWelcome();
+  const el = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  div.innerHTML = `
+    <div class="msg-av">${role==='assistant'?'R':'·'}</div>
+    <div class="msg-bubble">${content.replace(/\n/g,'<br>')}</div>
+  `;
+  el.appendChild(div);
+  scrollChat();
+}
+
+function showTyping() {
+  removeWelcome();
+  const el = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'msg assistant'; div.id = 'typing';
+  div.innerHTML = `
+    <div class="msg-av">R</div>
+    <div class="msg-bubble typing-bubble">
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+    </div>
+  `;
+  el.appendChild(div); scrollChat();
+}
+
+function hideTyping() {
+  const t = document.getElementById('typing');
+  if (t) t.remove();
+}
+
+async function sendMessage() {
+  if (chatLoading) return;
+  const text = chatInput.value.trim();
+  if (!text) return;
+
+  chatLoading = true; sendBtn.disabled = true;
+  chatInput.value = ''; chatInput.style.height = 'auto';
+  appendMsg('user', text);
+  showTyping();
+
+  try {
+    const res = await fetch('/chat', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({message: text})
+    });
+    const data = await res.json();
+    hideTyping();
+    appendMsg('assistant', data.reply);
+    // 更新对话数统计
+    const statEl = document.getElementById('statChats');
+    statEl.textContent = parseInt(statEl.textContent||0) + 1;
+  } catch(e) {
+    hideTyping();
+    appendMsg('assistant', '……');
+    toast('连接异常，请检查后端');
+  } finally {
+    chatLoading = false; sendBtn.disabled = false;
+    chatInput.focus();
+  }
+}
+
+// ── 初始化 ────────────────────────────────────────────────────
+loadMoments();
+loadMemories();
+chatInput.focus();
+</script>
+</body>
+</html>
