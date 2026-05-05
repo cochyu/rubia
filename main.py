@@ -1,7 +1,4 @@
-"""
-main.py - Rubia AI伴侣后端
-运行：uvicorn main:app --reload --port 8000
-"""
+
 
 import os
 import json
@@ -162,7 +159,7 @@ app.mount("/static", StaticFiles(directory="."), name="static")
 # ── 路由 ─────────────────────────────────────────────────────────
 from fastapi.responses import FileResponse
 
-@app.get("/avatar.jpg")
+@app.get("/res/avatar.jpg")
 async def avatar():
     return FileResponse("avatar.jpg")
 
